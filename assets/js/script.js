@@ -33,34 +33,31 @@ var updateTimeBlocks = function () {
   }
 
   var currentDay = moment().format("dddd MMMM DD, YYYY");
-  console.log(currentDay);
   var spanEl = $("#date");
-  console.log(spanEl);
   spanEl.text(currentDay);
 };
 
 var blurTextHandler = function (event) {
   var targetEl = $(event.target);
-  console.log("targetEl: " + targetEl);
   var parentId = targetEl.closest(".time-block").attr("id");
   var textBoxId = parentId.replace("row", "box");
-  var textBoxEl = $("#" + textBoxId + "");
   var eventText = $("#" + textBoxId + "").val();
+  var closestBtn = targetEl.closest('.time-block').children('.saveBtn');
+  var unsavedSpanEl = targetEl.closest('.time-block').children('.unsaved-text');
+  console.log("unsavedSpanEl: " + unsavedSpanEl);
   var parentListId = targetEl
     .closest(".time-block")
     .attr("id")
     .replace("-", "");
   setTimeout(function () {
     var activeEl = document.activeElement;
-    console.log("activeEl: " + activeEl);
     var activeParentId = activeEl.closest(".time-block").getAttribute("id");
-    console.log("active Parent ID" + activeParentId);
     
-    if (targetEl.is("button")) {
+    /*if (targetEl.is("button")) {
         textBoxEl.removeClass("unsaved");
         console.log("class removed");
-    }
-    else if (parentId != activeParentId && eventObj[parentListId].length !== 0) {
+    }*/
+    if (parentId != activeParentId && eventObj[parentListId].length !== 0) {
       if (eventText !== eventObj[parentListId][0].text) {
         targetEl.addClass("unsaved");
         console.log("class added");
@@ -68,8 +65,10 @@ var blurTextHandler = function (event) {
         targetEl.removeClass("unsaved");
         console.log("class removed");
       }
-    } else if (parentId != activeParentId && eventObj[parentListId].length === 0 && eventText !== "") { 
+    } 
+    else if (parentId != activeParentId && eventObj[parentListId].length === 0 && eventText !== "") { 
         targetEl.addClass("unsaved");
+        unsavedSpanEl.text("Unsaved Changes");
         console.log("class added");
     }
     else {
@@ -91,9 +90,8 @@ var saveButtonHandler = function (event) {
   var textBoxEl = $("#" + textBoxId + "");
 
   if (!eventText) {
-    console.log("array length: " + eventObj[parentListId].length);
     if (eventObj[parentListId].length === 0 || !eventObj[parentListId]) {
-      alert("You have not entered an event description");
+      alert("You have not entered an event description.");
       return;
     } else eventObj[parentListId] = [];
     textBoxEl.removeClass("unsaved");
@@ -105,6 +103,7 @@ var saveButtonHandler = function (event) {
       eventObj[parentListId].push({
         text: eventText,
         id: textBoxId,
+        status: "saved",
       });
     } else {
       eventObj[parentListId][0].text = eventText;
