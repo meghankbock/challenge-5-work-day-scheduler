@@ -18,7 +18,7 @@ var eventObj = {
 // check current time and update timeblocks to present/past/future
 var updateTimeBlocks = function () {
   console.log("time blocks updated");
-  currentTime = moment().format("H");
+  currentTime = moment().add(12,'hours').format("H");
 
   for (var i = 0; i < timeBlockArray.length; i++) {
     var timeBlockItem = $("#box-" + timeBlockArray[i] + "");
