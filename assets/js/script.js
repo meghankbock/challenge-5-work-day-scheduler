@@ -1,8 +1,19 @@
 // global variables
 var containerEl = $(".container");
 var timeBlockArray = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
-var eventObj = {};
-var eventArr = [];
+var eventObj = {
+  row8: [],
+  row9: [],
+  row10: [],
+  row11: [],
+  row12: [],
+  row13: [],
+  row14: [],
+  row15: [],
+  row16: [],
+  row17: [],
+};
+//var eventArr = [];
 
 // check current time and update timeblocks to present/past/future
 var updateTimeBlocks = function () {
@@ -20,34 +31,127 @@ var updateTimeBlocks = function () {
       timeBlockItem.addClass("future");
     }
   }
+
+  var currentDay = moment().format("dddd MMMM DD, YYYY");
+  console.log(currentDay);
+  var spanEl = $("#date");
+  console.log(spanEl);
+  spanEl.text(currentDay);
+};
+
+var blurTextHandler = function (event) {
+  var targetEl = $(event.target);
+  console.log("targetEl: " + targetEl);
+  var parentId = targetEl.closest(".time-block").attr("id");
+  var textBoxId = parentId.replace("row", "box");
+  var textBoxEl = $("#" + textBoxId + "");
+  var eventText = $("#" + textBoxId + "").val();
+  var parentListId = targetEl
+    .closest(".time-block")
+    .attr("id")
+    .replace("-", "");
+  setTimeout(function () {
+    var activeEl = document.activeElement;
+    console.log("activeEl: " + activeEl);
+    var activeParentId = activeEl.closest(".time-block").getAttribute("id");
+    console.log("active Parent ID" + activeParentId);
+    
+    if (targetEl.is("button")) {
+        textBoxEl.removeClass("unsaved");
+        console.log("class removed");
+    }
+    else if (parentId != activeParentId && eventObj[parentListId].length !== 0) {
+      if (eventText !== eventObj[parentListId][0].text) {
+        targetEl.addClass("unsaved");
+        console.log("class added");
+      } else {
+        targetEl.removeClass("unsaved");
+        console.log("class removed");
+      }
+    } else if (parentId != activeParentId && eventObj[parentListId].length === 0 && eventText !== "") { 
+        targetEl.addClass("unsaved");
+        console.log("class added");
+    }
+    else {
+        targetEl.removeClass("unsaved");
+        console.log("class removed");
+    }
+  }, 1);
+};
+
+var saveButtonHandler = function (event) {
+  var targetEl = $(event.target);
+  var parentId = targetEl.closest(".time-block").attr("id");
+  var parentListId = targetEl
+    .closest(".time-block")
+    .attr("id")
+    .replace("-", "");
+  var textBoxId = parentId.replace("row", "box");
+  var eventText = $("#" + textBoxId + "").val();
+  var textBoxEl = $("#" + textBoxId + "");
+
+  if (!eventText) {
+    console.log("array length: " + eventObj[parentListId].length);
+    if (eventObj[parentListId].length === 0 || !eventObj[parentListId]) {
+      alert("You have not entered an event description");
+      return;
+    } else eventObj[parentListId] = [];
+    textBoxEl.removeClass("unsaved");
+    saveEvents();
+    return;
+  } else if (eventText) {
+    if (eventObj[parentListId].length === 0 || !eventObj[parentListId]) {
+      eventObj[parentListId] = [];
+      eventObj[parentListId].push({
+        text: eventText,
+        id: textBoxId,
+      });
+    } else {
+      eventObj[parentListId][0].text = eventText;
+    }
+  }
+  saveEvents();
+  textBoxEl.removeClass("unsaved");
 };
 
 //
 var createEvent = function (eventText, textBoxId) {
-  console.log("text: " + eventText + "/ id: " + textBoxId);
   var textBoxEl = $("#" + textBoxId + "");
   textBoxEl.text(eventText);
 };
 
 var loadEvent = function () {
-  events = JSON.parse(localStorage.getItem("events"));
+  eventObj = JSON.parse(localStorage.getItem("events"));
 
   // if nothing in localStorage, create a new object to track all task status arrays
   if (!eventObj) {
-    eventObj = {};
+    eventObj = {
+      row8: [],
+      row9: [],
+      row10: [],
+      row11: [],
+      row12: [],
+      row13: [],
+      row14: [],
+      row15: [],
+      row16: [],
+      row17: [],
+    };
     console.log("no events in local storage");
     return false;
   }
 
   // loop over object properties
-  $.each(events, function (index, event) {
-    createEvent(event.text, event.id);
-    eventArr.push(event);
+  $.each(eventObj, function (list, arr) {
+    arr.forEach(function (event) {
+      createEvent(event.text, event.id);
+      //eventArr.push(event);
+    });
   });
 };
 
 var saveEvents = function () {
-  localStorage.setItem("events", JSON.stringify(eventArr));
+  localStorage.setItem("events", JSON.stringify(eventObj));
 };
 
 // initialize time blocks
@@ -62,27 +166,6 @@ setInterval(function () {
 }, 1000 * 60 * 5);
 
 // event on save
-$(".saveBtn").click(function (event) {
-  var targetEl = $(event.target);
-  var parentId = targetEl.closest(".time-block").attr("id");
-  var textBoxId = parentId.replace("row", "box");
-  var eventText = $("#" + textBoxId + "").val();
-  console.log("event text: " + eventText);
+$(".saveBtn").click(saveButtonHandler);
 
-  if (!eventText) {
-    alert("You have not entered an event description");
-    return;
-    
-  } else if (eventText) {
-    createEvent(eventText, textBoxId);
-
-    eventObj = {
-      text: eventText,
-      id: textBoxId,
-    };
-
-    eventArr.push(eventObj);
-
-    saveEvents();
-  }
-});
+$("textarea").blur(blurTextHandler);
